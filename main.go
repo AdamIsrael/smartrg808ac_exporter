@@ -148,6 +148,6 @@ func main() {
 	prometheus.MustRegister(smartrgCollector)
 
 	http.Handle("/metrics", promhttp.Handler())
-	fmt.Println("Listening on :2112")
-	http.ListenAndServe(":2112", nil)
+	fmt.Println("Listening on :9792")
+	http.ListenAndServe(":9792", nil)
 }
