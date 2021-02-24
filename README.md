@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/adamisrael/smartrg808ac_exporter.svg?style=svg)](https://circleci.com/gh/adamisrael/smartrg808ac_exporter)
+
 # SmartRG 808AC exporter for Prometheus
 
 Work in progress
@@ -11,6 +13,18 @@ SMARTRG_HOSTNAME=192.168.0.1 SMARTRG_USERNAME=admin SMARTRG_PASSWORD=<your passw
 
 ## Development
 
+You'll need to have [Go](https://golang.org/) installed to build the binary.
+
+```bash
+$ make build
+go build -o smartrg808ac_exporter
+```
+
+## Environment Variables
+
+- `SMARTRG_HOSTNAME` The hostname or IP address of your cable modem.
+- `SMARTRG_USERNAME` The username to authenticate as. You can find this on the bottom of the modem.
+- `SMARTRG_PASSWORD` The password to authenticate with. You can find this on the bottom of the modem.
 
 ## Systemd
 
@@ -46,4 +60,4 @@ sudo systemctl enable smartrg808ac_exporter
 
 | Description | Date | Version |
 | ----------- | ---- | ------- |
-| Initial release | tbd | 0.1 |
+| Initial release | 23 Feb 2020 | 0.1 |
