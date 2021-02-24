@@ -1,5 +1,5 @@
 [![CircleCI](https://circleci.com/gh/AdamIsrael/smartrg808ac_exporter.svg?style=svg)](https://circleci.com/gh/adamisrael/smartrg808ac_exporter)
-
+[![](https://goreportcard.com/badge/github.com/AdamIsrael/smartrg808ac_exporter)](https://goreportcard.com/report/github.com/AdamIsrael/smartrg808ac_exporter)
 # SmartRG 808AC exporter for Prometheus
 
 Work in progress
