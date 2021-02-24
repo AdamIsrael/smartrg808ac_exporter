@@ -8,13 +8,14 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func getUptime(hostname string, username string, password string) float64 {
+func getUptime(hostname string, username string, password string) (float64, error) {
 	client := &http.Client{
 		Timeout: time.Second * 10,
 	}
@@ -26,12 +27,18 @@ func getUptime(hostname string, username string, password string) float64 {
 	if err != nil {
 		log.Fatalf("Got error %s", err.Error())
 	}
+
 	req.SetBasicAuth(username, password)
 	resp, err := client.Do(req)
 
 	if err != nil {
+		if strings.Contains(err.Error(), "no route to host") {
+			log.Printf("No route to host")
+			return 0.0, err
+		}
 		log.Fatalf("Got error %s", err.Error())
 	}
+
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusOK {
@@ -52,9 +59,12 @@ func getUptime(hostname string, username string, password string) float64 {
 		seconds, _ := strconv.ParseFloat(parts[4], 32)
 
 		var secs float64 = days*86400 + hours*3600 + minutes*60 + seconds
-		return secs
+		return secs, nil
 	}
-	return 0.0
+
+	// The device is up, but we didn't get a 200 OK. Maybe something changed?
+	log.Printf("Bad Request: %d", resp.StatusCode)
+	return 0.0, nil
 }
 
 var (
@@ -74,6 +84,7 @@ type Collect struct {
 	ResponseTime string
 }
 
+// Exporter structure
 type Exporter struct {
 	hostname, username, password string
 	collect                      Collect
@@ -109,14 +120,18 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 }
 
 func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
-	uptime := getUptime(e.hostname, e.username, e.password)
+	uptime, err := getUptime(e.hostname, e.username, e.password)
 
-	e.up.Set(1)
+	if err != nil {
+		e.up.Set(0)
+	} else {
+		e.up.Set(1)
+	}
 	ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, uptime, "collect.uptime")
 }
 
-// New : Creates a new instance of Exporter for scraping metrics
-func New(hostname string, username string, password string, collect Collect) *Exporter {
+// NewExporter : Creates a new instance of Exporter for scraping metrics
+func NewExporter(hostname string, username string, password string, collect Collect) *Exporter {
 	return &Exporter{
 		hostname: hostname,
 		username: username,
@@ -144,7 +159,7 @@ func main() {
 
 	collect := Collect{}
 
-	smartrgCollector := New(hostname, username, password, collect)
+	smartrgCollector := NewExporter(hostname, username, password, collect)
 	prometheus.MustRegister(smartrgCollector)
 
 	http.Handle("/metrics", promhttp.Handler())
