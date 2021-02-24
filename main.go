@@ -33,7 +33,7 @@ func getUptime(hostname string, username string, password string) (float64, erro
 
 	if err != nil {
 		if strings.Contains(err.Error(), "no route to host") {
-			log.Printf("No route to host")
+			log.Print(err.Error())
 			return 0.0, err
 		}
 		log.Fatalf("Got error %s", err.Error())
